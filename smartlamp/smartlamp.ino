@@ -2,16 +2,17 @@
 // Defina uma variável com valor máximo do LDR (4000)
 // Defina uma variável para guardar o valor atual do LED (10)
 
-int ledPin = A3; //trocar para o esp
-int ldrPin = A5; //trocar para o esp
+int ledPin = 26; //trocar para o esp
+int ldrPin = 34; //trocar para o esp
 int ledValue = 10;     // Valor inicial do LED (10%)
-int ldrMax = 1096;
+int ldrMax = 4000;
 
 void setup() {
     Serial.begin(9600);  // Inicializa a comunicação serial
     pinMode(ledPin, OUTPUT);  // Define o pino do LED como saída
     Serial.println("SmartLamp Initialized.");
-    ledUpdate(ledValue);  // Atualiza o valor inicial do LED
+    ledUpdate(1);  // Atualiza o valor inicial do LED
+    processCommand("GET_LDR");
 }
 
 void loop() {
@@ -40,6 +41,7 @@ void processCommand(String command) {
             Serial.println("RES SET_LED -1");
         }
     } else if (command.equals("GET_LED")) {
+        Serial.print("RES GET_LED ");
         Serial.println(ledValue);
     } else if (command.equals("GET_LDR")){
       	Serial.print("RES GET_LDR ");
@@ -52,7 +54,7 @@ void processCommand(String command) {
 // Função para atualizar o valor do LED
 void ledUpdate(int value) {
     ledValue = value;  
-    int pwmValue = map(value, 0, 100, 10, 255);  
+    int pwmValue = map(value, 0, 100, 0, 255);  
     analogWrite(ledPin, pwmValue);  
 }
 
@@ -61,5 +63,3 @@ int ldrGetValue() {
   int value = map(valueLdr,0,ldrMax,0,100);
   return value; 
 }
-
-
