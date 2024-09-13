@@ -15,8 +15,8 @@ static uint usb_in, usb_out;                       // Endereços das portas de e
 static char *usb_in_buffer, *usb_out_buffer;       // Buffers de entrada e saída da USB
 static int usb_max_size;                           // Tamanho máximo de uma mensagem USB
 
-#define VENDOR_ID   SUBSTITUA_PELO_VENDORID /* Encontre o VendorID  do smartlamp */
-#define PRODUCT_ID  SUBSTITUA_PELO_PRODUCTID /* Encontre o ProductID do smartlamp */
+#define VENDOR_ID   0x10c4 /* Encontre o VendorID  do smartlamp */
+#define PRODUCT_ID  0xea60 /* Encontre o ProductID do smartlamp */
 static const struct usb_device_id id_table[] = { { USB_DEVICE(VENDOR_ID, PRODUCT_ID) }, {} };
 
 static int  usb_probe(struct usb_interface *ifce, const struct usb_device_id *id); // Executado quando o dispositivo é conectado na USB
@@ -109,17 +109,20 @@ static int usb_read_serial() {
 // Executado quando o arquivo /sys/kernel/smartlamp/{led, ldr} é lido (e.g., cat /sys/kernel/smartlamp/led)
 static ssize_t attr_show(struct kobject *sys_obj, struct kobj_attribute *attr, char *buff) {
     // value representa o valor do led ou ldr
-    int value = -1;
+    //int value = -1;
     // attr_name representa o nome do arquivo que está sendo lido (ldr ou led)
     const char *attr_name = attr->attr.name;
 
     // printk indicando qual arquivo está sendo lido
     printk(KERN_INFO "SmartLamp: Lendo %s ...\n", attr_name);
 
-    // Implemente a leitura do valor do led usando a função usb_read_serial()
-        
+    if(strcmp(attr_name,"led") == 0){
+        sprintf(buff, "%s\n", "Lucas");
+    }else if (strcmp(attr_name,"ldr") == 0){
+        sprintf(buff, "%s\n", "DevTitans");
+    }
 
-    sprintf(buff, "%d\n", value);                   // Cria a mensagem com o valor do led, ldr
+    //sprintf(buff, "%d\n", value);                   // Cria a mensagem com o valor do led, ldr
     return strlen(buff);
 }
 
@@ -130,6 +133,11 @@ static ssize_t attr_store(struct kobject *sys_obj, struct kobj_attribute *attr, 
     long ret, value;
     const char *attr_name = attr->attr.name;
 
+    if(strcmp(attr_name,"ldr") == 0){
+       printk(KERN_ALERT "SmartLamp: Nao e permitodo escrever no arquivo ldr .\n");
+       return -EACCES;
+    }
+
     // Converte o valor recebido para long
     ret = kstrtol(buff, 10, &value);
     if (ret) {
@@ -137,11 +145,8 @@ static ssize_t attr_store(struct kobject *sys_obj, struct kobj_attribute *attr, 
         return -EACCES;
     }
 
-    printk(KERN_INFO "SmartLamp: Setando %s para %ld ...\n", attr_name, value);
-
-    if (ret < 0) {
-        printk(KERN_ALERT "SmartLamp: erro ao setar o valor do %s.\n", attr_name);
-        return -EACCES;
+    if(strcmp(attr_name,"led") == 0){
+       printk(KERN_ALERT "SmartLamp: O valor %ld foi escrito no arquivo led.\n", value);
     }
 
     return strlen(buff);
