@@ -16,13 +16,14 @@ static uint usb_in, usb_out;                       // Endereços das portas de e
 static char *usb_in_buffer, *usb_out_buffer;       // Buffers de entrada e saída da USB
 static int usb_max_size;                           // Tamanho máximo de uma mensagem USB
 
-#define VENDOR_ID   SUBSTITUA_PELO_VENDORID /* Encontre o VendorID  do smartlamp */
-#define PRODUCT_ID  SUBSTITUA_PELO_PRODUCTID /* Encontre o ProductID do smartlamp */
+#define VENDOR_ID   0x10c4 /* Encontre o VendorID  do smartlamp */
+#define PRODUCT_ID  0xea60 /* Encontre o ProductID do smartlamp */
 static const struct usb_device_id id_table[] = { { USB_DEVICE(VENDOR_ID, PRODUCT_ID) }, {} };
 
 static int  usb_probe(struct usb_interface *ifce, const struct usb_device_id *id); // Executado quando o dispositivo é conectado na USB
 static void usb_disconnect(struct usb_interface *ifce);                           // Executado quando o dispositivo USB é desconectado da USB
-static int  usb_read_serial(void);   
+//static int  usb_read_serial(void);
+static int  usb_write_serial(char *cmd, int param);  
 
 // Executado quando o arquivo /sys/kernel/smartlamp/{led, ldr} é lido (e.g., cat /sys/kernel/smartlamp/led)
 static ssize_t attr_show(struct kobject *sys_obj, struct kobj_attribute *attr, char *buff);
@@ -68,7 +69,7 @@ static int usb_probe(struct usb_interface *interface, const struct usb_device_id
     usb_in_buffer = kmalloc(usb_max_size, GFP_KERNEL);
     usb_out_buffer = kmalloc(usb_max_size, GFP_KERNEL);
 
-    LDR_value = usb_read_serial();
+    LDR_value = 1; //alterar usb_read_serial
 
     printk("LDR Value: %d\n", LDR_value);
 
@@ -98,10 +99,13 @@ static int usb_send_cmd(char *cmd, int param) {
     printk(KERN_INFO "SmartLamp: Enviando comando: %s\n", cmd);
 
     // preencha o buffer                     // Caso contrário, é só o comando mesmo
-
+    // use a variavel usb_out_buffer para armazernar o comando em formato de texto que o firmware reconheça
+    sprintf(usb_out_buffer, "%s %d", cmd, param);
+    // Grave o valor de usb_out_buffer com printk
+    printk("%d", *usb_out_buffer);
     // Envia o comando (usb_out_buffer) para a USB
     // Procure a documentação da função usb_bulk_msg para entender os parâmetros
-    ret = usb_bulk_msg(smartlamp_device, usb_sndbulkpipe(smartlamp_device, usb_out), BUFFER, ?, &actual_size, 1000);
+    ret = usb_bulk_msg(smartlamp_device, usb_sndbulkpipe(smartlamp_device, usb_out), usb_out_buffer, strlen(usb_out_buffer), &actual_size, 1000);
     if (ret) {
         printk(KERN_ERR "SmartLamp: Erro de codigo %d ao enviar comando!\n", ret);
         return -1;
@@ -119,6 +123,7 @@ static int usb_send_cmd(char *cmd, int param) {
         }
 
         // adicione a sua implementação do médodo usb_read_serial
+        //usb_read_serial();
     }
     return -1; // Não recebi a resposta esperada do dispositivo
 }
@@ -133,7 +138,14 @@ static ssize_t attr_show(struct kobject *sys_obj, struct kobj_attribute *attr, c
     // printk indicando qual arquivo está sendo lido
     printk(KERN_INFO "SmartLamp: Lendo %s ...\n", attr_name);
 
+
     // Implemente a leitura do valor do led ou ldr usando a função usb_send_cmd()
+
+    if(strcmp(attr_name,"led") == 0){
+        usb_send_cmd("GET_LED", -1);
+    }else if (strcmp(attr_name,"ldr") == 0){
+        usb_send_cmd("GET_LDR", -1);
+    }
 
     sprintf(buff, "%d\n", value);                   // Cria a mensagem com o valor do led, ldr
     return strlen(buff);
@@ -146,6 +158,13 @@ static ssize_t attr_store(struct kobject *sys_obj, struct kobj_attribute *attr, 
     long ret, value;
     const char *attr_name = attr->attr.name;
 
+
+
+    if(strcmp(attr_name,"ldr") == 0){
+       printk(KERN_ALERT "SmartLamp: Nao e permitodo escrever no arquivo ldr .\n");
+       return -EACCES;
+    }
+
     // Converte o valor recebido para long
     ret = kstrtol(buff, 10, &value);
     if (ret) {
@@ -156,6 +175,7 @@ static ssize_t attr_store(struct kobject *sys_obj, struct kobj_attribute *attr, 
     printk(KERN_INFO "SmartLamp: Setando %s para %ld ...\n", attr_name, value);
 
     // utilize a função usb_send_cmd para enviar o comando SET_LED X
+    usb_send_cmd("SET_LED", value);
 
     if (ret < 0) {
         printk(KERN_ALERT "SmartLamp: erro ao setar o valor do %s.\n", attr_name);
