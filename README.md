@@ -2,7 +2,7 @@
 
 # DevTITANS 05 - HandsOn Linux - Equipe 04
 
-Bem-vindo ao repositório da Equipe 0X do HandsON de Linux do DevTITANS! Este projeto contém um firmware para o ESP32 escrito em formato Arduino `.ino`, bem como um driver do kernel Linux escrito em C. O objetivo é demonstrar como criar uma solução completa de hardware e software que integra um dispositivo ESP32 com um sistema Linux.
+Bem-vindo ao repositório da Equipe 04 do HandsON de Linux do DevTITANS! Este projeto contém um firmware para o ESP32 escrito em formato Arduino `.ino`, bem como um driver do kernel Linux escrito em C. O objetivo é demonstrar como criar uma solução completa de hardware e software que integra um dispositivo ESP32 com um sistema Linux.
 
 ## Tabela de Conteúdos
 
@@ -17,28 +17,20 @@ Bem-vindo ao repositório da Equipe 0X do HandsON de Linux do DevTITANS! Este pr
 
 ## Contribuidores
 
-<img src="https://github.com/DevTITANS05/Hands-On-Linux-fork-/assets/21023906/85e61f3e-476c-47a4-82d5-4054e856c67b" width="180" >
-<img src="https://github.com/DevTITANS05/Hands-On-Linux-fork-/assets/21023906/85e61f3e-476c-47a4-82d5-4054e856c67b" width="180" >
-<img src="https://github.com/DevTITANS05/Hands-On-Linux-fork-/assets/21023906/85e61f3e-476c-47a4-82d5-4054e856c67b" width="180" >
-<img src="https://github.com/DevTITANS05/Hands-On-Linux-fork-/assets/21023906/85e61f3e-476c-47a4-82d5-4054e856c67b" width="180" >
-<img src="https://github.com/DevTITANS05/Hands-On-Linux-fork-/assets/21023906/85e61f3e-476c-47a4-82d5-4054e856c67b" width="180" >
-<img src="https://github.com/DevTITANS05/Hands-On-Linux-fork-/assets/21023906/85e61f3e-476c-47a4-82d5-4054e856c67b" width="180" >
+<img src="https://github.com/AgataCli/Hands-On-Linux/blob/92dbef2c245a1983053dd462abad7d8b99e3aed2/images/Agatha.png" width="180" > <img src="https://github.com/AgataCli/Hands-On-Linux/blob/b43f34f45ce84abe07cd6b193156b51ce192f66e/images/Cristiano.png" width="180" >
+<img src="https://github.com/AgataCli/Hands-On-Linux/blob/b43f34f45ce84abe07cd6b193156b51ce192f66e/images/Guiherme.png" width="180" >
+<img src="https://github.com/AgataCli/Hands-On-Linux/blob/b43f34f45ce84abe07cd6b193156b51ce192f66e/images/Lucas.png" width="180" >
+<img src="https://github.com/AgataCli/Hands-On-Linux/blob/b43f34f45ce84abe07cd6b193156b51ce192f66e/images/Samuelson.png" width="180" >
 
-- **Ágata Clícia Santos Brazão:**
+- **Ágata Clícia Santos Brazão: Desenvolvedor do Firmware e Driver Linux, Escritor da Documentação**
 
-- **Cristiano Coimbra Goes:**
+- **Cristiano Coimbra Goes: Desenvolvedor do Firmware e Driver Linux**
 
-- **Guilherme Silveira Duarte:**
+- **Guilherme Silveira Duarte: Desenvolvedor do Firmware e Driver Linux, Escritor da Documentação**
 
-- **Lucas do Nascimento Silva:**
+- **Lucas do Nascimento Silva: Desenvolvedor do Driver Linux, Escritor da Documentação**
 
-- **Samuelson de Brito Mesquita:**
-
-...Desenvolvedor do Firmware e Mantenedor do Projeto
-...Desenvolvedor do Firmware
-...Desenvolvedor do Driver Linux
-...Desenvolvedor do Driver Linux
-...Desenvolvedor do Firmware e Escritor da Documentação
+- **Samuelson de Brito Mesquita: Desenvolvedor do Firmware e Driver Linux**
 
 ## Introdução
 

@@ -1,0 +1,3 @@
+GPIO26: Controle do LED com resistor (valor não definido).
+GPIO34: Leitura do LDR através de um resistor (valor não definido).
+Dois GND: Um para o LED e outro para o LDR.
