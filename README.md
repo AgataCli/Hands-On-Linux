@@ -2,7 +2,7 @@
 
 # DevTITANS 05 - HandsOn Linux - Equipe 04
 
-Bem-vindo ao repositório da Equipe 0X do HandsON de Linux do DevTITANS! Este projeto contém um firmware para o ESP32 escrito em formato Arduino `.ino`, bem como um driver do kernel Linux escrito em C. O objetivo é demonstrar como criar uma solução completa de hardware e software que integra um dispositivo ESP32 com um sistema Linux.
+Bem-vindo ao repositório da Equipe 04 do HandsON de Linux do DevTITANS! Este projeto contém um firmware para o ESP32 escrito em formato Arduino `.ino`, bem como um driver do kernel Linux escrito em C. O objetivo é demonstrar como criar uma solução completa de hardware e software que integra um dispositivo ESP32 com um sistema Linux.
 
 ## Tabela de Conteúdos
 
@@ -17,8 +17,7 @@ Bem-vindo ao repositório da Equipe 0X do HandsON de Linux do DevTITANS! Este pr
 
 ## Contribuidores
 
-<img src="https://github.com/AgataCli/Hands-On-Linux/blob/92dbef2c245a1983053dd462abad7d8b99e3aed2/images/Agatha.png" width="180" >
-<img src="https://github.com/AgataCli/Hands-On-Linux/blob/b43f34f45ce84abe07cd6b193156b51ce192f66e/images/Cristiano.png" width="180" >
+<img src="https://github.com/AgataCli/Hands-On-Linux/blob/92dbef2c245a1983053dd462abad7d8b99e3aed2/images/Agatha.png" width="180" > <img src="https://github.com/AgataCli/Hands-On-Linux/blob/b43f34f45ce84abe07cd6b193156b51ce192f66e/images/Cristiano.png" width="180" >
 <img src="https://github.com/AgataCli/Hands-On-Linux/blob/b43f34f45ce84abe07cd6b193156b51ce192f66e/images/Guiherme.png" width="180" >
 <img src="https://github.com/AgataCli/Hands-On-Linux/blob/b43f34f45ce84abe07cd6b193156b51ce192f66e/images/Lucas.png" width="180" >
 <img src="https://github.com/AgataCli/Hands-On-Linux/blob/b43f34f45ce84abe07cd6b193156b51ce192f66e/images/Samuelson.png" width="180" >
