@@ -18,10 +18,10 @@ Bem-vindo ao repositório da Equipe 0X do HandsON de Linux do DevTITANS! Este pr
 ## Contribuidores
 
 <img src="https://github.com/AgataCli/Hands-On-Linux/blob/92dbef2c245a1983053dd462abad7d8b99e3aed2/images/Agatha.png" width="180" >
-<img src="https://github.com/DevTITANS05/Hands-On-Linux-fork-/assets/21023906/85e61f3e-476c-47a4-82d5-4054e856c67b" width="180" >
-<img src="https://github.com/DevTITANS05/Hands-On-Linux-fork-/assets/21023906/85e61f3e-476c-47a4-82d5-4054e856c67b" width="180" >
-<img src="https://github.com/DevTITANS05/Hands-On-Linux-fork-/assets/21023906/85e61f3e-476c-47a4-82d5-4054e856c67b" width="180" >
-<img src="https://github.com/DevTITANS05/Hands-On-Linux-fork-/assets/21023906/85e61f3e-476c-47a4-82d5-4054e856c67b" width="180" >
+<img src="https://github.com/AgataCli/Hands-On-Linux/blob/b43f34f45ce84abe07cd6b193156b51ce192f66e/images/Cristiano.png" width="180" >
+<img src="https://github.com/AgataCli/Hands-On-Linux/blob/b43f34f45ce84abe07cd6b193156b51ce192f66e/images/Guiherme.png" width="180" >
+<img src="https://github.com/AgataCli/Hands-On-Linux/blob/b43f34f45ce84abe07cd6b193156b51ce192f66e/images/Lucas.png" width="180" >
+<img src="https://github.com/AgataCli/Hands-On-Linux/blob/b43f34f45ce84abe07cd6b193156b51ce192f66e/images/Samuelson.png" width="180" >
 <img src="https://github.com/DevTITANS05/Hands-On-Linux-fork-/assets/21023906/85e61f3e-476c-47a4-82d5-4054e856c67b" width="180" >
 
 - **Ágata Clícia Santos Brazão:**
