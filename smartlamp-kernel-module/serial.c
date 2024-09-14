@@ -15,8 +15,8 @@ static uint usb_in, usb_out;                       // Endereços das portas de e
 static char *usb_in_buffer, *usb_out_buffer;       // Buffers de entrada e saída da USB
 static int usb_max_size;                           // Tamanho máximo de uma mensagem USB
 
-#define VENDOR_ID   SUBSTITUA_PELO_VENDORID /* Encontre o VendorID  do smartlamp */
-#define PRODUCT_ID  SUBSTITUA_PELO_PRODUCTID /* Encontre o ProductID do smartlamp */
+#define VENDOR_ID   0x10c4 /* Encontre o VendorID  do smartlamp */
+#define PRODUCT_ID  0xea60 /* Encontre o ProductID do smartlamp */
 static const struct usb_device_id id_table[] = { { USB_DEVICE(VENDOR_ID, PRODUCT_ID) }, {} };
 
 static int  usb_probe(struct usb_interface *ifce, const struct usb_device_id *id); // Executado quando o dispositivo é conectado na USB
@@ -69,20 +69,71 @@ static int usb_read_serial() {
     int ret, actual_size;
     int retries = 10;                       // Tenta algumas vezes receber uma resposta da USB. Depois desiste.
 
+    int counter = 0;
+    int i;
+    int j = 0;
+    long val = 0;
+    char *value = kmalloc(20, GFP_KERNEL);
+    char *command = kmalloc(20, GFP_KERNEL);
+    
     // Espera pela resposta correta do dispositivo (desiste depois de várias tentativas)
     while (retries > 0) {
         // Lê os dados da porta serial e armazena em usb_in_buffer
-            // usb_in_buffer - contem a resposta em string do dispositivo
-            // actual_size - contem o tamanho da resposta em bytes
-        ret = usb_bulk_msg(smartlamp_device, usb_rcvbulkpipe(smartlamp_device, usb_in), usb_in_buffer, min(usb_max_size, MAX_RECV_LINE), &actual_size, 1000);
-        if (ret) {
-            printk(KERN_ERR "SmartLamp: Erro ao ler dados da USB (tentativa %d). Codigo: %d\n", ret, retries--);
-            continue;
+        // usb_in_buffer - contem a resposta em string do dispositivo
+        // actual_size - contem o tamanho da resposta em bytes
+
+        /*
+        RES SET_LED 1 - quando o valor inserido estiver no intervalo 0 a 100
+        RES SET_LED -1- qualquer entrada inválida do comando SET_LED
+        ERR Unknown command. - resposta para qualquer comando inválido
+        RES GET_LED Y - resposta para o comando GET_LED onde Y é o valor atual do led
+        RES GET_LDR Z - resposta para o comando GET_LDR onde Z é o valor atual do ldr
+        */
+        
+        while(1)
+        {
+            ret = usb_bulk_msg(smartlamp_device, usb_rcvbulkpipe(smartlamp_device, usb_in), usb_in_buffer, min(usb_max_size, MAX_RECV_LINE), &actual_size, 1000); 
+
+            if (ret) {
+                printk(KERN_ERR "SmartLamp: Erro ao ler dados da USB (tentativa %d). Codigo: %d\n", retries--, ret);
+                break;
+            }
+            // printk(KERN_INFO "Palavra1[%d]: %s", actual_size, usb_in_buffer);
+            strcat(command, usb_in_buffer);
         }
 
+        // Inclui o caractere para final da msg
+        strcat(command, "\0");
+
+        // RES GET_LED Y conta os " " na resposta
+        for(i = 0; i < strlen(command); i++){
+
+            if(command[i] == ' '){
+                counter++;
+            }
+            
+            if(counter == 2){
+                i++;
+                break;
+            }
+        }
+        
+        // RES GET_LED Y separa a msg depois do 2 " " para pegar o valaor
+        for(; i < strlen(command); i++) {
+            value[j] = command[i];
+            j++;
+        }
+
+        value[j] = '\0';
+
+        // converte a string para inteiro na base 10
+        kstrtol(value, 10, &val);
+
+        kfree(value);
+        kfree(command);
         //caso tenha recebido a mensagem 'RES_LDR X' via serial acesse o buffer 'usb_in_buffer' e retorne apenas o valor da resposta X
         //retorne o valor de X em inteiro
-        return 0;
+        return val;
     }
 
     return -1; 
