@@ -71,7 +71,11 @@ static int usb_write_serial(char *cmd, int param) {
     char resp_expected[MAX_RECV_LINE];      // Resposta esperada do comando  
     
     // use a variavel usb_out_buffer para armazernar o comando em formato de texto que o firmware reconheça
-    sprintf(usb_out_buffer, "%s %d", cmd, param);
+    if(param == -1) {
+        sprintf(usb_out_buffer, "%s", cmd);
+    } else {
+        sprintf(usb_out_buffer, "%s %d", cmd, param);
+    }
     // Grave o valor de usb_out_buffer com printk
     printk("%d", *usb_out_buffer);
     // Envie o comando pela porta Serial
