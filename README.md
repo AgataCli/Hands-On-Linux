@@ -23,21 +23,15 @@ Bem-vindo ao repositório da Equipe 0X do HandsON de Linux do DevTITANS! Este pr
 <img src="https://github.com/AgataCli/Hands-On-Linux/blob/b43f34f45ce84abe07cd6b193156b51ce192f66e/images/Lucas.png" width="180" >
 <img src="https://github.com/AgataCli/Hands-On-Linux/blob/b43f34f45ce84abe07cd6b193156b51ce192f66e/images/Samuelson.png" width="180" >
 
-- **Ágata Clícia Santos Brazão:**
+- **Ágata Clícia Santos Brazão: Desenvolvedor do Firmware e Driver Linux, Escritor da Documentação**
 
-- **Cristiano Coimbra Goes:**
+- **Cristiano Coimbra Goes: Desenvolvedor do Firmware e Driver Linux**
 
-- **Guilherme Silveira Duarte:**
+- **Guilherme Silveira Duarte: Desenvolvedor do Firmware e Driver Linux, Escritor da Documentação**
 
-- **Lucas do Nascimento Silva:**
+- **Lucas do Nascimento Silva: Desenvolvedor do Driver Linux, Escritor da Documentação**
 
-- **Samuelson de Brito Mesquita:**
-
-...Desenvolvedor do Firmware e Mantenedor do Projeto
-...Desenvolvedor do Firmware
-...Desenvolvedor do Driver Linux
-...Desenvolvedor do Driver Linux
-...Desenvolvedor do Firmware e Escritor da Documentação
+- **Samuelson de Brito Mesquita: Desenvolvedor do Firmware e Driver Linux**
 
 ## Introdução
 
