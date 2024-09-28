@@ -78,17 +78,9 @@ static void usb_disconnect(struct usb_interface *interface) {
 static int usb_read_serial() {
     int ret, actual_size;
     int retries = 10;                       // Tenta algumas vezes receber uma resposta da USB. Depois desiste.
-    //char *command = kmalloc(20, GFP_KERNEL);
-    //char *resposta = kmalloc(20, GFP_KERNEL);
-    //char *value = kmalloc(20, GFP_KERNEL);
-
     
     int counter = 0;
-
-    char *command;
-    char *resposta;
-    //char *value;
-    int size = 0;
+    
     int i;
     int j=0;
     long val = -1;
