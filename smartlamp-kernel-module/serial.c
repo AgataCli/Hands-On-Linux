@@ -9,6 +9,9 @@ MODULE_LICENSE("GPL");
 
 #define MAX_RECV_LINE 100 // Tamanho máximo de uma linha de resposta do dispositvo USB
 
+#define S_BUFF_SIZE 4096
+static char *s_buf;
+static char *value;
 
 static struct usb_device *smartlamp_device;        // Referência para o dispositivo USB
 static uint usb_in, usb_out;                       // Endereços das portas de entrada e saida da USB
@@ -51,6 +54,11 @@ static int usb_probe(struct usb_interface *interface, const struct usb_device_id
     usb_in_buffer = kmalloc(usb_max_size, GFP_KERNEL);
     usb_out_buffer = kmalloc(usb_max_size, GFP_KERNEL);
 
+    value = kmalloc(20, GFP_KERNEL);
+    s_buf = kmalloc(S_BUFF_SIZE, GFP_KERNEL);
+	if (!s_buf)
+		return -ENOMEM;
+
     LDR_value = usb_read_serial();
 
     printk("LDR Value: %d\n", LDR_value);
@@ -63,78 +71,81 @@ static void usb_disconnect(struct usb_interface *interface) {
     printk(KERN_INFO "SmartLamp: Dispositivo desconectado.\n");
     kfree(usb_in_buffer);                   // Desaloca buffers
     kfree(usb_out_buffer);
+    kfree(s_buf);
+    kfree(value);
 }
 
 static int usb_read_serial() {
     int ret, actual_size;
     int retries = 10;                       // Tenta algumas vezes receber uma resposta da USB. Depois desiste.
-
+    
     int counter = 0;
+    
     int i;
-    int j = 0;
-    long val = 0;
-    char *value = kmalloc(20, GFP_KERNEL);
-    char *command = kmalloc(20, GFP_KERNEL);
+    int j=0;
+    long val = -1;
     
     // Espera pela resposta correta do dispositivo (desiste depois de várias tentativas)
     while (retries > 0) {
         // Lê os dados da porta serial e armazena em usb_in_buffer
         // usb_in_buffer - contem a resposta em string do dispositivo
         // actual_size - contem o tamanho da resposta em bytes
-
-        /*
-        RES SET_LED 1 - quando o valor inserido estiver no intervalo 0 a 100
-        RES SET_LED -1- qualquer entrada inválida do comando SET_LED
-        ERR Unknown command. - resposta para qualquer comando inválido
-        RES GET_LED Y - resposta para o comando GET_LED onde Y é o valor atual do led
-        RES GET_LDR Z - resposta para o comando GET_LDR onde Z é o valor atual do ldr
-        */
         
-        while(1)
-        {
-            ret = usb_bulk_msg(smartlamp_device, usb_rcvbulkpipe(smartlamp_device, usb_in), usb_in_buffer, min(usb_max_size, MAX_RECV_LINE), &actual_size, 1000); 
+        ret = usb_bulk_msg(smartlamp_device, usb_rcvbulkpipe(smartlamp_device, usb_in), usb_in_buffer, min(usb_max_size, MAX_RECV_LINE), &actual_size, 1000); 
 
-            if (ret) {
-                printk(KERN_ERR "SmartLamp: Erro ao ler dados da USB (tentativa %d). Codigo: %d\n", retries--, ret);
-                break;
-            }
-            // printk(KERN_INFO "Palavra1[%d]: %s", actual_size, usb_in_buffer);
-            strcat(command, usb_in_buffer);
-        }
-
-        // Inclui o caractere para final da msg
-        strcat(command, "\0");
-
-        // RES GET_LED Y conta os " " na resposta
-        for(i = 0; i < strlen(command); i++){
-
-            if(command[i] == ' '){
-                counter++;
-            }
-            
-            if(counter == 2){
-                i++;
-                break;
-            }
+        if (ret) {
+            printk(KERN_ERR "SmartLamp: Erro ao ler dados da USB (tentativa %d). Codigo: %d\n", retries--, ret);
+            continue;
         }
         
-        // RES GET_LED Y separa a msg depois do 2 " " para pegar o valaor
-        for(; i < strlen(command); i++) {
-            value[j] = command[i];
-            j++;
+        usb_in_buffer[actual_size] = '\0'; // Assegura que o buffer está terminado em null
+        printk(KERN_INFO "Palavra1[%d]: %s", actual_size, usb_in_buffer);
+
+        strcat(s_buf, usb_in_buffer);
+
+        printk(KERN_INFO "S_BUF: %s", s_buf);
+        
+        if(strstr(usb_in_buffer, "\n") != NULL){
+            if (strstr(s_buf, "RES GET_LDR ") != NULL) {
+                printk(KERN_INFO ">>>Resposta[%d]: %s", strlen(s_buf), s_buf);
+
+                s_buf[strlen(s_buf)] = '\0';
+
+                for(i = 0; i < strlen(s_buf); i++){
+
+                    if(s_buf[i] == ' '){
+                        counter++;
+                    }
+                    
+                    if(counter == 2){
+                        i++;
+                        break;
+                    }
+                }
+                    
+                for(; i < strlen(s_buf); i++) {
+                    value[j] = s_buf[i];
+                    j++;
+                }
+
+                value[j] = '\0';
+                value[j-1] = '\0';
+                value[j-2] = '\0';
+                printk(KERN_INFO "Value[%d]: %s", strlen(value), value);
+
+                kstrtol(value, 10, &val);
+                printk(KERN_INFO "Valor do LDR convertido:%d", val);
+                
+                strcpy(s_buf,"\0");
+                strcpy(value,"\0");
+                counter = 0;
+                j = 0;
+
+                return val;
+            }
+            strcpy(s_buf,"\0");
         }
-
-        value[j] = '\0';
-
-        // converte a string para inteiro na base 10
-        kstrtol(value, 10, &val);
-
-        kfree(value);
-        kfree(command);
-        //caso tenha recebido a mensagem 'RES_LDR X' via serial acesse o buffer 'usb_in_buffer' e retorne apenas o valor da resposta X
-        //retorne o valor de X em inteiro
-        return val;
     }
 
-    return -1; 
+    return -1;    
 }
