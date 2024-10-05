@@ -128,6 +128,8 @@ static int usb_send_cmd(char *cmd, int param) {
     sprintf(resp_expected, "RES %s", cmd);  // Resposta esperada. Ficará lendo linhas até receber essa resposta.
     #endif
 
+    return usb_read_serial();
+    #if 0
     // Espera pela resposta correta do dispositivo (desiste depois de várias tentativas)
     while (retries > 0) {
         // Lê dados da USB
@@ -139,9 +141,10 @@ static int usb_send_cmd(char *cmd, int param) {
 
         // adicione a sua implementação do médodo usb_read_serial
         
-        return usb_read_serial();
+        //return usb_read_serial();
     }
     return -1; // Não recebi a resposta esperada do dispositivo
+    #endif
 }
 
 // Executado quando o arquivo /sys/kernel/smartlamp/{led, ldr} é lido (e.g., cat /sys/kernel/smartlamp/led)
@@ -289,7 +292,7 @@ static int usb_write_serial(char *cmd, int param) {
         sprintf(usb_out_buffer, "%s %d", cmd, param);
     }
     // Grave o valor de usb_out_buffer com printk
-    printk(">>>> %d", *usb_out_buffer);
+    //printk(">>>> %d", *usb_out_buffer);
     // Envie o comando pela porta Serial
     ret = usb_bulk_msg(smartlamp_device, usb_sndbulkpipe(smartlamp_device, usb_out), usb_out_buffer, strlen(usb_out_buffer), &actual_size, 1000*HZ);
     if (ret) {
