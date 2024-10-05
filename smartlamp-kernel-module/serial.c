@@ -99,15 +99,15 @@ static int usb_read_serial() {
         }
         
         usb_in_buffer[actual_size] = '\0'; // Assegura que o buffer está terminado em null
-        printk(KERN_INFO "Palavra1[%d]: %s", actual_size, usb_in_buffer);
+        //printk(KERN_INFO "Palavra1[%d]: %s", actual_size, usb_in_buffer);
 
         strcat(s_buf, usb_in_buffer);
 
-        printk(KERN_INFO "S_BUF: %s", s_buf);
+        //printk(KERN_INFO "S_BUF: %s", s_buf);
         
         if(strstr(usb_in_buffer, "\n") != NULL){
             if (strstr(s_buf, "RES GET_LDR ") != NULL) {
-                printk(KERN_INFO ">>>Resposta[%d]: %s", strlen(s_buf), s_buf);
+                //printk(KERN_INFO ">>>Resposta[%d]: %s", strlen(s_buf), s_buf);
 
                 s_buf[strlen(s_buf)] = '\0';
 
@@ -131,10 +131,10 @@ static int usb_read_serial() {
                 value[j] = '\0';
                 value[j-1] = '\0';
                 value[j-2] = '\0';
-                printk(KERN_INFO "Value[%d]: %s", strlen(value), value);
+                //printk(KERN_INFO "Value[%d]: %s", strlen(value), value);
 
                 kstrtol(value, 10, &val);
-                printk(KERN_INFO "Valor do LDR convertido:%d", val);
+                //printk(KERN_INFO "Valor do LDR convertido:%d", val);
                 
                 strcpy(s_buf,"\0");
                 strcpy(value,"\0");

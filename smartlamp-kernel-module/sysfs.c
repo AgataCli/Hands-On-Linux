@@ -2,6 +2,8 @@
 #include <linux/usb.h>
 #include <linux/slab.h>
 
+
+
 MODULE_AUTHOR("DevTITANS <devtitans@icomp.ufam.edu.br>");
 MODULE_DESCRIPTION("Driver de acesso ao SmartLamp (ESP32 com Chip Serial CP2102");
 MODULE_LICENSE("GPL");
@@ -9,6 +11,11 @@ MODULE_LICENSE("GPL");
 
 #define MAX_RECV_LINE 100 // Tamanho máximo de uma linha de resposta do dispositvo USB
 
+
+
+#define S_BUFF_SIZE 4096 //Tamanho máximo do buffer pra string do read_usb
+static char *s_buf; //Buffer para a string
+static char *value; 
 
 static struct usb_device *smartlamp_device;        // Referência para o dispositivo USB
 static uint usb_in, usb_out;                       // Endereços das portas de entrada e saida da USB
@@ -68,6 +75,11 @@ static int usb_probe(struct usb_interface *interface, const struct usb_device_id
     usb_in_buffer = kmalloc(usb_max_size, GFP_KERNEL);
     usb_out_buffer = kmalloc(usb_max_size, GFP_KERNEL);
 
+    value = kmalloc(20, GFP_KERNEL);
+    s_buf = kmalloc(S_BUFF_SIZE, GFP_KERNEL);
+	if (!s_buf)
+		return -ENOMEM;
+
     LDR_value = usb_read_serial();
 
     printk("LDR Value: %d\n", LDR_value);
@@ -81,30 +93,86 @@ static void usb_disconnect(struct usb_interface *interface) {
     if (sys_obj) kobject_put(sys_obj);      // Remove os arquivos em /sys/kernel/smartlamp
     kfree(usb_in_buffer);                   // Desaloca buffers
     kfree(usb_out_buffer);
+
+    kfree(s_buf); //Desalocar o buffer da string
+    kfree(value);  
 }
 
 static int usb_read_serial() {
     int ret, actual_size;
     int retries = 10;                       // Tenta algumas vezes receber uma resposta da USB. Depois desiste.
-
+    
+    int counter = 0;
+    
+    int i;
+    int j=0;
+    long val = -1;
+    
     // Espera pela resposta correta do dispositivo (desiste depois de várias tentativas)
     while (retries > 0) {
         // Lê os dados da porta serial e armazena em usb_in_buffer
-            // usb_in_buffer - contem a resposta em string do dispositivo
-            // actual_size - contem o tamanho da resposta em bytes
-        ret = usb_bulk_msg(smartlamp_device, usb_rcvbulkpipe(smartlamp_device, usb_in), usb_in_buffer, min(usb_max_size, MAX_RECV_LINE), &actual_size, 1000);
+        // usb_in_buffer - contem a resposta em string do dispositivo
+        // actual_size - contem o tamanho da resposta em bytes
+        
+        ret = usb_bulk_msg(smartlamp_device, usb_rcvbulkpipe(smartlamp_device, usb_in), usb_in_buffer, min(usb_max_size, MAX_RECV_LINE), &actual_size, 1000); 
+
         if (ret) {
-            printk(KERN_ERR "SmartLamp: Erro ao ler dados da USB (tentativa %d). Codigo: %d\n", ret, retries--);
+            printk(KERN_ERR "SmartLamp: Erro ao ler dados da USB (tentativa %d). Codigo: %d\n", retries--, ret);
             continue;
         }
+        
+        usb_in_buffer[actual_size] = '\0'; // Assegura que o buffer está terminado em null
+        //printk(KERN_INFO "Palavra1[%d]: %s", actual_size, usb_in_buffer);
 
-        //caso tenha recebido a mensagem 'RES_LDR X' via serial acesse o buffer 'usb_in_buffer' e retorne apenas o valor da resposta X
-        //retorne o valor de X em inteiro
-        return 0;
+        strcat(s_buf, usb_in_buffer);
+
+        //printk(KERN_INFO "S_BUF: %s", s_buf);
+        
+        if(strstr(usb_in_buffer, "\n") != NULL){
+            if (strstr(s_buf, "RES GET_LDR ") != NULL) {
+                //printk(KERN_INFO ">>>Resposta[%d]: %s", strlen(s_buf), s_buf);
+
+                s_buf[strlen(s_buf)] = '\0';
+
+                for(i = 0; i < strlen(s_buf); i++){
+
+                    if(s_buf[i] == ' '){
+                        counter++;
+                    }
+                    
+                    if(counter == 2){
+                        i++;
+                        break;
+                    }
+                }
+                    
+                for(; i < strlen(s_buf); i++) {
+                    value[j] = s_buf[i];
+                    j++;
+                }
+
+                value[j] = '\0';
+                value[j-1] = '\0';
+                value[j-2] = '\0';
+                //printk(KERN_INFO "Value[%d]: %s", strlen(value), value);
+
+                kstrtol(value, 10, &val);
+                //printk(KERN_INFO "Valor do LDR convertido:%d", val);
+                
+                strcpy(s_buf,"\0");
+                strcpy(value,"\0");
+                counter = 0;
+                j = 0;
+
+                return val;
+            }
+            strcpy(s_buf,"\0");
+        }
     }
 
-    return -1; 
+    return -1;    
 }
+
 
 // Executado quando o arquivo /sys/kernel/smartlamp/{led, ldr} é lido (e.g., cat /sys/kernel/smartlamp/led)
 static ssize_t attr_show(struct kobject *sys_obj, struct kobj_attribute *attr, char *buff) {
@@ -117,7 +185,7 @@ static ssize_t attr_show(struct kobject *sys_obj, struct kobj_attribute *attr, c
     printk(KERN_INFO "SmartLamp: Lendo %s ...\n", attr_name);
 
     if(strcmp(attr_name,"led") == 0){
-        sprintf(buff, "%s\n", "Lucas");
+        
     }else if (strcmp(attr_name,"ldr") == 0){
         sprintf(buff, "%s\n", "DevTitans");
     }

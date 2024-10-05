@@ -9,6 +9,9 @@ MODULE_LICENSE("GPL");
 
 #define MAX_RECV_LINE 100 // Tamanho máximo de uma linha de resposta do dispositvo USB
 
+#define S_BUFF_SIZE 4096 //Tamanho máximo do buffer pra string do read_usb
+static char *s_buf; //Buffer para a string
+static char *value; 
 
 static char recv_line[MAX_RECV_LINE];              // Armazena dados vindos da USB até receber um caractere de nova linha '\n'
 static struct usb_device *smartlamp_device;        // Referência para o dispositivo USB
@@ -22,7 +25,7 @@ static const struct usb_device_id id_table[] = { { USB_DEVICE(VENDOR_ID, PRODUCT
 
 static int  usb_probe(struct usb_interface *ifce, const struct usb_device_id *id); // Executado quando o dispositivo é conectado na USB
 static void usb_disconnect(struct usb_interface *ifce);                           // Executado quando o dispositivo USB é desconectado da USB
-//static int  usb_read_serial(void);
+static int  usb_read_serial(void);
 static int  usb_write_serial(char *cmd, int param);  
 
 // Executado quando o arquivo /sys/kernel/smartlamp/{led, ldr} é lido (e.g., cat /sys/kernel/smartlamp/led)
@@ -69,7 +72,12 @@ static int usb_probe(struct usb_interface *interface, const struct usb_device_id
     usb_in_buffer = kmalloc(usb_max_size, GFP_KERNEL);
     usb_out_buffer = kmalloc(usb_max_size, GFP_KERNEL);
 
-    LDR_value = 1; //alterar usb_read_serial
+    value = kmalloc(20, GFP_KERNEL);
+    s_buf = kmalloc(S_BUFF_SIZE, GFP_KERNEL);
+	if (!s_buf)
+		return -ENOMEM;
+
+    LDR_value = usb_read_serial();
 
     printk("LDR Value: %d\n", LDR_value);
 
@@ -82,6 +90,9 @@ static void usb_disconnect(struct usb_interface *interface) {
     if (sys_obj) kobject_put(sys_obj);      // Remove os arquivos em /sys/kernel/smartlamp
     kfree(usb_in_buffer);                   // Desaloca buffers
     kfree(usb_out_buffer);
+
+    kfree(s_buf); //Desalocar o buffer da string
+    kfree(value); 
 }
 
 // Envia um comando via USB, espera e retorna a resposta do dispositivo (convertido para int)
@@ -98,6 +109,9 @@ static int usb_send_cmd(char *cmd, int param) {
 
     printk(KERN_INFO "SmartLamp: Enviando comando: %s\n", cmd);
 
+    usb_write_serial(cmd, param);
+
+    #if 0
     // preencha o buffer                     // Caso contrário, é só o comando mesmo
     // use a variavel usb_out_buffer para armazernar o comando em formato de texto que o firmware reconheça
     sprintf(usb_out_buffer, "%s %d", cmd, param);
@@ -112,6 +126,7 @@ static int usb_send_cmd(char *cmd, int param) {
     }
 
     sprintf(resp_expected, "RES %s", cmd);  // Resposta esperada. Ficará lendo linhas até receber essa resposta.
+    #endif
 
     // Espera pela resposta correta do dispositivo (desiste depois de várias tentativas)
     while (retries > 0) {
@@ -123,7 +138,8 @@ static int usb_send_cmd(char *cmd, int param) {
         }
 
         // adicione a sua implementação do médodo usb_read_serial
-        //usb_read_serial();
+        
+        return usb_read_serial();
     }
     return -1; // Não recebi a resposta esperada do dispositivo
 }
@@ -142,9 +158,10 @@ static ssize_t attr_show(struct kobject *sys_obj, struct kobj_attribute *attr, c
     // Implemente a leitura do valor do led ou ldr usando a função usb_send_cmd()
 
     if(strcmp(attr_name,"led") == 0){
-        usb_send_cmd("GET_LED", -1);
+        value = usb_send_cmd("GET_LED", -1);
     }else if (strcmp(attr_name,"ldr") == 0){
-        usb_send_cmd("GET_LDR", -1);
+        
+        value = usb_send_cmd("GET_LDR", -1);
     }
 
     sprintf(buff, "%d\n", value);                   // Cria a mensagem com o valor do led, ldr
@@ -183,4 +200,106 @@ static ssize_t attr_store(struct kobject *sys_obj, struct kobj_attribute *attr, 
     }
 
     return strlen(buff);
+}
+
+static int usb_read_serial() {
+    int ret, actual_size;
+    int retries = 10;                       // Tenta algumas vezes receber uma resposta da USB. Depois desiste.
+    
+    int counter = 0;
+    
+    int i;
+    int j=0;
+    long val = -1;
+    
+    // Espera pela resposta correta do dispositivo (desiste depois de várias tentativas)
+    while (retries > 0) {
+        // Lê os dados da porta serial e armazena em usb_in_buffer
+        // usb_in_buffer - contem a resposta em string do dispositivo
+        // actual_size - contem o tamanho da resposta em bytes
+        
+        ret = usb_bulk_msg(smartlamp_device, usb_rcvbulkpipe(smartlamp_device, usb_in), usb_in_buffer, min(usb_max_size, MAX_RECV_LINE), &actual_size, 1000); 
+
+        if (ret) {
+            printk(KERN_ERR "SmartLamp: Erro ao ler dados da USB (tentativa %d). Codigo: %d\n", retries--, ret);
+            continue;
+        }
+        
+        usb_in_buffer[actual_size] = '\0'; // Assegura que o buffer está terminado em null
+        //printk(KERN_INFO "Palavra1[%d]: %s", actual_size, usb_in_buffer);
+
+        strcat(s_buf, usb_in_buffer);
+
+        //printk(KERN_INFO "S_BUF: %s", s_buf);
+        
+        if(strstr(usb_in_buffer, "\n") != NULL){
+            if (strstr(s_buf, "RES GET_LDR ") != NULL) {
+                //printk(KERN_INFO ">>>Resposta[%d]: %s", strlen(s_buf), s_buf);
+
+                s_buf[strlen(s_buf)] = '\0';
+
+                for(i = 0; i < strlen(s_buf); i++){
+
+                    if(s_buf[i] == ' '){
+                        counter++;
+                    }
+                    
+                    if(counter == 2){
+                        i++;
+                        break;
+                    }
+                }
+                    
+                for(; i < strlen(s_buf); i++) {
+                    value[j] = s_buf[i];
+                    j++;
+                }
+
+                value[j] = '\0';
+                value[j-1] = '\0';
+                value[j-2] = '\0';
+                //printk(KERN_INFO "Value[%d]: %s", strlen(value), value);
+
+                kstrtol(value, 10, &val);
+                //printk(KERN_INFO "Valor do LDR convertido:%d", val);
+                
+                strcpy(s_buf,"\0");
+                strcpy(value,"\0");
+                counter = 0;
+                j = 0;
+
+                return val;
+            }
+            strcpy(s_buf,"\0");
+        }
+    }
+
+    return -1;    
+}
+
+
+static int usb_write_serial(char *cmd, int param) {
+    int ret, actual_size;    
+    char resp_expected[MAX_RECV_LINE];      // Resposta esperada do comando  
+    
+    // use a variavel usb_out_buffer para armazernar o comando em formato de texto que o firmware reconheça
+    if(param == -1) {
+        sprintf(usb_out_buffer, "%s", cmd);
+    } else {
+        sprintf(usb_out_buffer, "%s %d", cmd, param);
+    }
+    // Grave o valor de usb_out_buffer com printk
+    printk(">>>> %d", *usb_out_buffer);
+    // Envie o comando pela porta Serial
+    ret = usb_bulk_msg(smartlamp_device, usb_sndbulkpipe(smartlamp_device, usb_out), usb_out_buffer, strlen(usb_out_buffer), &actual_size, 1000*HZ);
+    if (ret) {
+        printk(KERN_ERR "SmartLamp: Erro de codigo %d ao enviar comando!\n", ret);
+        return -1;
+    }
+
+    // Use essa variavel para fazer a integração com a função usb_read_serial
+    // resp_expected deve conter a resposta esperada do comando enviado e deve ser comparada com a resposta recebida
+    sprintf(resp_expected, "RES %s", cmd);
+
+    return -1; 
 }
