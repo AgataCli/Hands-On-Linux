@@ -2,10 +2,18 @@
 // Defina uma variável com valor máximo do LDR (4000)
 // Defina uma variável para guardar o valor atual do LED (10)
 
+#include "DHT.h"
+
+#define DHTPIN 15
+#define DHTTYPE DHT11 
+
 int ledPin = 26; //trocar para o esp
 int ldrPin = 34; //trocar para o esp
 int ledValue = 10;     // Valor inicial do LED (10%)
 int ldrMax = 4000;
+
+DHT dht(DHTPIN, DHTTYPE);
+
 
 void setup() {
     Serial.begin(9600);  // Inicializa a comunicação serial
@@ -46,6 +54,12 @@ void processCommand(String command) {
     } else if (command.equals("GET_LDR")){
       	Serial.print("RES GET_LDR ");
       	Serial.println(ldrGetValue());
+    } else if(command.equals("GET_HUM")) {
+        Serial.print("RES GET_HUM ");
+        Serial.println(humGetValue());
+    } else if(command.equals("GET_TEMP")) {
+        Serial.print("RES GET_TEMP ");
+        Serial.println(tempGetValue());
     } else {
         Serial.println("ERR Unknown command.");
     }
@@ -62,4 +76,14 @@ int ldrGetValue() {
   int valueLdr = analogRead(ldrPin);
   int value = map(valueLdr,0,ldrMax,0,100);
   return value; 
+}
+
+int humGetValue() {
+  float h = dht.readHumidity();
+  return h;
+}
+
+int tempGetValue() {
+  float t = dht.readTemperature();
+  return t;
 }
