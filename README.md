@@ -140,6 +140,9 @@ Depois que o driver e o firmware estiverem configurados, você poderá interagir
     ```sh
     sudo rmmod smartlamp
     ```
+
+# DevTITANS 05 - HandsOn Internet das Coisas
+
     
 ## Contato
 
