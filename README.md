@@ -143,7 +143,23 @@ Depois que o driver e o firmware estiverem configurados, você poderá interagir
 
 # DevTITANS 05 - HandsOn Internet das Coisas
 
-    
-## Contato
+### Codigo Fonte que implementa o led do Capslock\
+Entre no diretório
+  ```sh
+cd /sys/class/leds/input4::scrolllock
+```
+
+Coloque o terminal em sudo bash
+  ```sh
+sudo bash
+```
+
+Altere o estado do led
+  ```sh
+echo 1 > brightness
+```
+  ```sh
+echo 0 > brightness
+```
 
 Para perguntas, sugestões ou feedback, entre em contato com o mantenedor do projeto em [maintainer@example.com](mailto:maintainer@example.com).
