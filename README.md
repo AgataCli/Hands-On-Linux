@@ -143,7 +143,7 @@ Depois que o driver e o firmware estiverem configurados, você poderá interagir
 
 # DevTITANS 05 - HandsOn Internet das Coisas
 
-### Codigo Fonte que implementa o led do Capslock\
+### Codigo Fonte que implementa o led do Capslock
 Entre no diretório
   ```sh
 cd /sys/class/leds/input4::scrolllock
