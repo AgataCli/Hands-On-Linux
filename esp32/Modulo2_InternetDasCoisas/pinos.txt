@@ -1,0 +1,4 @@
+GPIO34: DHT11
+GPIO26: PinoLed
+3V3: Protoboard
+GND: Protoboard
