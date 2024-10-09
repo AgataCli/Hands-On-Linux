@@ -144,9 +144,14 @@ Depois que o driver e o firmware estiverem configurados, você poderá interagir
 # DevTITANS 05 - HandsOn Internet das Coisas
 
 ### Codigo Fonte que implementa o led do Capslock
-Entre no diretório
+Se seu computador não possuir led no capslock, conecte um teclado que possua e entre no diretório:
   ```sh
-cd /sys/class/leds/input4::scrolllock
+cd /sys/class/leds
+```
+
+Dê um ls no diretório, procure pelo input34::scrolllock e entre nele (pode ser um número diferente, veja como está no seu)
+  ```sh
+cd input34::scrolllock
 ```
 
 Coloque o terminal em sudo bash
